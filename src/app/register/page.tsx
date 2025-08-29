@@ -3,16 +3,16 @@
 function validarRut(rut: string): boolean {
   rut = rut.replace(/[^\dkK]/gi, '').toUpperCase();
   if (!/^\d{7,8}[\dkK]$/.test(rut)) return false;
-  let cuerpo = rut.slice(0, -1);
-  let dv = rut.slice(-1);
+  const cuerpo = rut.slice(0, -1);
+  const dv = rut.slice(-1);
   let suma = 0;
   let multiplo = 2;
   for (let i = cuerpo.length - 1; i >= 0; i--) {
     suma += parseInt(cuerpo[i]) * multiplo;
     multiplo = multiplo < 7 ? multiplo + 1 : 2;
   }
-  let dvEsperadoNum = 11 - (suma % 11);
-  let dvEsperado = dvEsperadoNum === 11 ? '0' : dvEsperadoNum === 10 ? 'K' : dvEsperadoNum.toString();
+  const dvEsperadoNum = 11 - (suma % 11);
+  const dvEsperado = dvEsperadoNum === 11 ? '0' : dvEsperadoNum === 10 ? 'K' : dvEsperadoNum.toString();
   return dv === dvEsperado;
 }
 import { Button } from "@/components/ui/button";

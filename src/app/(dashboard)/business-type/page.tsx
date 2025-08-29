@@ -1,16 +1,18 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Building2, Users, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 
 export default function BusinessTypePage() {
-  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const loginMode = searchParams?.get('login') === '1';
-  const router = typeof window !== 'undefined' ? require('next/navigation').useRouter() : null;
   
   function handleLogin(type: string) {
     if (router) router.push(`/login?type=${type}`);
@@ -20,7 +22,8 @@ export default function BusinessTypePage() {
     <div className="min-h-screen bg-gray9 from-blue15 to-blue13 font-body">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <Suspense fallback={<div>Loading...</div>}>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-blue1 mb-4 font-title">
             Elige tu Software de Gestión
@@ -119,7 +122,8 @@ export default function BusinessTypePage() {
             </div>
           </div>
         </div>
-      </main>
+        </main>
+      </Suspense>
 
       <Footer />
     </div>

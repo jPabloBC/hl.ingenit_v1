@@ -113,7 +113,7 @@ export default function AdminDashboard() {
 
           {/* Recent Activity */}
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray8">
-              // Archivo movido a ../users/page.tsx
+              {/* Archivo movido a ../users/page.tsx */}
             <h2 className="text-xl font-bold text-blue1 mb-4 font-title">
               Actividad Reciente
             </h2>
