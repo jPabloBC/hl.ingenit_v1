@@ -9,7 +9,7 @@ import { useEffect, Suspense } from "react";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 
-export default function BusinessTypePage() {
+function BusinessTypeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const loginMode = searchParams?.get('login') === '1';
@@ -19,11 +19,7 @@ export default function BusinessTypePage() {
   }
   
   return (
-    <div className="min-h-screen bg-gray9 from-blue15 to-blue13 font-body">
-      <Header />
-
-      <Suspense fallback={<div>Loading...</div>}>
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-blue1 mb-4 font-title">
             Elige tu Software de Gestión
@@ -122,9 +118,17 @@ export default function BusinessTypePage() {
             </div>
           </div>
         </div>
-        </main>
-      </Suspense>
+      </main>
+    );
+  }
 
+export default function BusinessTypePage() {
+  return (
+    <div className="min-h-screen bg-gray9 from-blue15 to-blue13 font-body">
+      <Header />
+      <Suspense fallback={<div>Loading...</div>}>
+        <BusinessTypeContent />
+      </Suspense>
       <Footer />
     </div>
   );
