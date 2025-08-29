@@ -4,14 +4,14 @@ import Link from "next/link";
 
 export default function Header() {
   return (
-    <header className="bg-white shadow-sm border-b border-gray8">
+    <header className="bg-white shadow-sm border-b border-gray8 mt-0 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Logo variant="default" size="lg" />
+            <Logo variant="default" size="md" />
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <Link href="/business-type">
+            <Link href="/login">
               <Button variant="ghost" className="text-blue1 hover:text-blue8 font-body text-sm sm:text-base">
                 Iniciar Sesión
               </Button>

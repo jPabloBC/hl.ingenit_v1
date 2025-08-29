@@ -67,7 +67,7 @@ export default function Home() {
                   Reportes de ingresos y balances
                 </li>
               </ul>
-              <Link href="/business-type">
+              <Link href="/summary/hotel">
                 <Button className="mt-4 bg-blue8 hover:bg-blue6 text-white font-body">
                   Acceder al Software
                 </Button>
@@ -107,7 +107,7 @@ export default function Home() {
                   Sistema de cobro integrado
                 </li>
               </ul>
-              <Link href="/business-type">
+              <Link href="/summary/restaurant">
                 <Button className="mt-4 bg-gold3 hover:bg-gold2 text-white font-body">
                   Acceder al Software
                 </Button>

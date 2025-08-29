@@ -1,12 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Building2, Users, ArrowRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 
 export default function BusinessTypePage() {
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const loginMode = searchParams?.get('login') === '1';
+  const router = typeof window !== 'undefined' ? require('next/navigation').useRouter() : null;
+  
+  function handleLogin(type: string) {
+    if (router) router.push(`/login?type=${type}`);
+  }
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue15 to-blue13 font-body">
+    <div className="min-h-screen bg-gray9 from-blue15 to-blue13 font-body">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -19,12 +30,18 @@ export default function BusinessTypePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Hotels Card */}
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray8 hover:shadow-2xl transition-shadow">
             <div className="text-center">
               <div className="bg-blue15 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-                <Building2 className="h-10 w-10 text-blue8" />
+                <Image
+                  src="/assets/icon_ingenIT.png"
+                  alt="INGENIT Hotel Icon"
+                  width={40}
+                  height={40}
+                  className="h-10 w-10 object-contain"
+                />
               </div>
               <h2 className="text-2xl font-bold text-blue1 mb-4 font-title">
                 Software para Hoteles y Hospedajes
@@ -45,12 +62,19 @@ export default function BusinessTypePage() {
                 </ul>
               </div>
               
-              <Link href="/register?type=hotel">
-                <Button size="lg" className="bg-blue8 hover:bg-blue6 text-white font-body w-full">
-                  Registrarse
+              {loginMode ? (
+                <Button size="lg" className="bg-blue8 hover:bg-blue6 text-white font-body w-full" onClick={() => handleLogin('hotel')}>
+                  Iniciar Sesión Hotel
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-              </Link>
+              ) : (
+                <Link href="/register?type=hotel">
+                  <Button size="lg" className="bg-blue8 hover:bg-blue6 text-white font-body w-full">
+                    Registrarse
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -79,12 +103,19 @@ export default function BusinessTypePage() {
                 </ul>
               </div>
               
-              <Link href="/register?type=restaurant">
-                <Button size="lg" className="bg-gold3 hover:bg-gold2 text-white font-body w-full">
-                  Registrarse
+              {loginMode ? (
+                <Button size="lg" className="bg-gold3 hover:bg-gold2 text-white font-body w-full" onClick={() => handleLogin('restaurant')}>
+                  Iniciar Sesión Restaurante
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-              </Link>
+              ) : (
+                <Link href="/register?type=restaurant">
+                  <Button size="lg" className="bg-gold3 hover:bg-gold2 text-white font-body w-full">
+                    Registrarse
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>

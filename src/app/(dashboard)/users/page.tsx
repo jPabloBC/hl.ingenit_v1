@@ -3,7 +3,7 @@ import { Building2, Users, BarChart3, Settings, Users2, Calendar, DollarSign, Tr
 import Link from "next/link";
 import BaseLayout from "@/components/layout/base-layout";
 
-export default function AdminDashboard() {
+export default function UsersDashboard() {
   return (
     <BaseLayout>
       <div className="space-y-8">
@@ -11,7 +11,7 @@ export default function AdminDashboard() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-blue1 font-title">
-              Panel de Administración
+              Panel de Clientes
             </h1>
             <p className="text-gray4 font-body">
               Bienvenido a tu plataforma de gestión
@@ -113,7 +113,6 @@ export default function AdminDashboard() {
 
           {/* Recent Activity */}
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray8">
-              // Archivo movido a ../users/page.tsx
             <h2 className="text-xl font-bold text-blue1 mb-4 font-title">
               Actividad Reciente
             </h2>
@@ -167,21 +166,21 @@ export default function AdminDashboard() {
             Módulos del Sistema
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link href="/admin/rooms">
+            <Link href="/users/rooms">
               <Button variant="outline" className="w-full h-20 flex flex-col space-y-2 border-blue8 text-blue8 hover:bg-blue15 font-body">
                 <Building2 className="h-6 w-6" />
                 <span>Gestión de Habitaciones</span>
               </Button>
             </Link>
             
-            <Link href="/admin/guests">
+            <Link href="/users/guests">
               <Button variant="outline" className="w-full h-20 flex flex-col space-y-2 border-gold3 text-gold3 hover:bg-gold7 font-body">
                 <Users className="h-6 w-6" />
                 <span>Gestión de Huéspedes</span>
               </Button>
             </Link>
             
-            <Link href="/admin/reports">
+            <Link href="/users/reports">
               <Button variant="outline" className="w-full h-20 flex flex-col space-y-2 border-green-600 text-green-600 hover:bg-green-50 font-body">
                 <BarChart3 className="h-6 w-6" />
                 <span>Reportes y Estadísticas</span>

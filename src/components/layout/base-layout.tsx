@@ -8,7 +8,7 @@ interface BaseLayoutProps {
 
 export default function BaseLayout({ children, className = "" }: BaseLayoutProps) {
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue15 to-blue13 font-body ${className}`}>
+  <div className={`min-h-screen bg-gray9 font-body ${className}`}>
       <Header />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {children}
