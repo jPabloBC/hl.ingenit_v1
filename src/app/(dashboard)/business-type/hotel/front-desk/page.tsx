@@ -295,7 +295,7 @@ export default function FrontDeskPage() {
       const today = getBusinessDate(businessCountry);
       console.log('Today date:', today);
       
-      // Usar consulta directa con columnas correctas
+      // Usar consulta con joins opcionales para obtener datos de huéspedes y habitaciones
       const { data, error } = await supabase
         .from('hl_reservations')
         .select(`
@@ -314,7 +314,19 @@ export default function FrontDeskPage() {
           primary_guest_email,
           primary_guest_phone,
           created_at,
-          updated_at
+          updated_at,
+          hl_guests(
+            id,
+            name,
+            email,
+            phone
+          ),
+          hl_rooms(
+            id,
+            room_number,
+            room_type,
+            floor
+          )
         `)
         .eq('business_id', businessId);
 
@@ -332,9 +344,9 @@ export default function FrontDeskPage() {
         ['pending', 'confirmed'].includes(r.status)
       ).map((r: any) => ({
         reservation_id: r.id,
-        guest_name: r.hl_guests ? `${r.hl_guests.first_name || ''} ${r.hl_guests.last_name || ''}`.trim() || 'Sin nombre' : 'Sin nombre',
-        guest_email: r.hl_guests?.email || '',
-        guest_phone: r.hl_guests?.phone || '',
+        guest_name: r.hl_guests?.name || r.primary_guest_name || 'Sin nombre',
+        guest_email: r.hl_guests?.email || r.primary_guest_email || '',
+        guest_phone: r.hl_guests?.phone || r.primary_guest_phone || '',
         room_number: r.hl_rooms?.room_number || '',
         room_type: r.hl_rooms?.room_type || '',
         check_in_date: r.check_in_date,
@@ -393,7 +405,7 @@ export default function FrontDeskPage() {
       console.log('Loading departures for businessId:', businessId);
       const today = getBusinessDate(businessCountry);
       
-      // Usar consulta directa con columnas correctas
+      // Usar consulta con joins opcionales para obtener datos de huéspedes y habitaciones
       const { data, error } = await supabase
         .from('hl_reservations')
         .select(`
@@ -412,7 +424,19 @@ export default function FrontDeskPage() {
           primary_guest_email,
           primary_guest_phone,
           created_at,
-          updated_at
+          updated_at,
+          hl_guests(
+            id,
+            name,
+            email,
+            phone
+          ),
+          hl_rooms(
+            id,
+            room_number,
+            room_type,
+            floor
+          )
         `)
         .eq('business_id', businessId);
 
@@ -428,11 +452,11 @@ export default function FrontDeskPage() {
         r.status === 'checked_in'
       ).map((r: any) => ({
         reservation_id: r.id,
-        guest_name: r.primary_guest_name || 'Huésped',
-        guest_email: r.primary_guest_email || '',
-        guest_phone: r.primary_guest_phone || '',
-        room_number: `Habitación ${r.room_id || 'N/A'}`,
-        room_type: 'Estándar', // Valor por defecto
+        guest_name: r.hl_guests?.name || r.primary_guest_name || 'Huésped',
+        guest_email: r.hl_guests?.email || r.primary_guest_email || '',
+        guest_phone: r.hl_guests?.phone || r.primary_guest_phone || '',
+        room_number: r.hl_rooms?.room_number || '',
+        room_type: r.hl_rooms?.room_type || 'Estándar',
         check_in_date: r.check_in_date,
         check_in_time: r.check_in_time,
         check_out_date: r.check_out_date,
