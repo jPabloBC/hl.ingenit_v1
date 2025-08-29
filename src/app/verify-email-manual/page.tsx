@@ -1,12 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import BaseLayout from "@/components/layout/base-layout";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default function VerifyEmailManualPage() {
+function VerifyEmailManualContent() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -63,8 +63,7 @@ export default function VerifyEmailManualPage() {
   }
 
   return (
-    <BaseLayout>
-      <div className="w-full max-w-md mx-auto mt-16 p-8 bg-white rounded-2xl shadow-xl border border-gray8">
+    <div className="w-full max-w-md mx-auto mt-16 p-8 bg-white rounded-2xl shadow-xl border border-gray8">
         <h1 className="text-3xl font-bold text-blue1 mb-6 font-title text-center">
           Verificación Manual de Email
         </h1>
@@ -114,6 +113,15 @@ export default function VerifyEmailManualPage() {
           </Link>
         </div>
       </div>
+    );
+  }
+
+export default function VerifyEmailManualPage() {
+  return (
+    <BaseLayout>
+      <Suspense fallback={<div>Loading...</div>}>
+        <VerifyEmailManualContent />
+      </Suspense>
     </BaseLayout>
   );
 }
