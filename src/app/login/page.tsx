@@ -1,12 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import BaseLayout from "@/components/layout/base-layout";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -90,8 +90,7 @@ export default function LoginPage() {
   }
 
   return (
-    <BaseLayout>
-      <div className="w-full max-w-md mx-auto mt-16 p-8 bg-white rounded-2xl shadow-xl border border-gray8">
+    <div className="w-full max-w-md mx-auto mt-16 p-8 bg-white rounded-2xl shadow-xl border border-gray8">
         <h1 className="text-3xl font-bold text-blue1 mb-6 font-title text-center">Iniciar Sesión</h1>
         {type && (
           <div className="mb-4 text-center text-blue8 font-semibold font-body">
@@ -151,6 +150,15 @@ export default function LoginPage() {
           </Link>
         </div>
       </div>
+    );
+  }
+
+export default function LoginPage() {
+  return (
+    <BaseLayout>
+      <Suspense fallback={<div>Loading...</div>}>
+        <LoginContent />
+      </Suspense>
     </BaseLayout>
   );
 }
