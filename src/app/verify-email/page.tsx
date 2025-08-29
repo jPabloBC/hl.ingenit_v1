@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import BaseLayout from "@/components/layout/base-layout";
 import { Button } from "@/components/ui/button";
 import ResendActivation from "./resend";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -98,8 +98,7 @@ export default function VerifyEmailPage() {
   }, [status, countdown, router]);
 
   return (
-    <BaseLayout>
-      <div className="w-full max-w-lg mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-[60vh]">
+    <div className="w-full max-w-lg mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-[60vh]">
         <h1 className="text-3xl font-bold text-blue1 mb-6 font-title text-center">Verificación de Correo</h1>
         {status === "pending" && (
           <div className="text-blue8 font-body text-base text-center bg-blue-50 border border-blue-200 rounded-lg px-6 py-4 shadow-sm w-full">Verificando...</div>
@@ -135,6 +134,15 @@ export default function VerifyEmailPage() {
           <Button className="mt-6 bg-blue8 hover:bg-blue6 text-white font-body w-full">Ir a Iniciar Sesión</Button>
         </Link>
       </div>
+    );
+  }
+
+export default function VerifyEmailPage() {
+  return (
+    <BaseLayout>
+      <Suspense fallback={<div>Loading...</div>}>
+        <VerifyEmailContent />
+      </Suspense>
     </BaseLayout>
   );
 }
