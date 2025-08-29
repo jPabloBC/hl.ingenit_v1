@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import HotelLayout from "@/components/layout/hotel-layout";
 import { Button } from "@/components/ui/button";
@@ -84,7 +84,8 @@ export default function PaymentSuccessPage() {
 
   return (
     <HotelLayout>
-      <div className="w-full max-w-2xl mx-auto">
+      <Suspense fallback={<div>Loading...</div>}>
+        <div className="w-full max-w-2xl mx-auto">
         <div className="text-center py-12">
           {/* Status Icon and Title */}
           <div className={`${statusInfo.bgColor} ${statusInfo.borderColor} border-2 rounded-lg p-8 mb-8`}>
@@ -193,7 +194,7 @@ export default function PaymentSuccessPage() {
             </div>
           </div>
         </div>
-      </div>
+      </Suspense>
     </HotelLayout>
   );
 }
