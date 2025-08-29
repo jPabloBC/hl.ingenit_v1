@@ -40,8 +40,9 @@ import { supabase } from "@/lib/supabase";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import BaseLayout from "@/components/layout/base-layout";
+import { Suspense } from "react";
 
-export default function RegisterPage() {
+function RegisterContent() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
@@ -584,6 +585,15 @@ export default function RegisterPage() {
           </form>
         </div>
       </div>
+    );
+  }
+
+export default function RegisterPage() {
+  return (
+    <BaseLayout>
+      <Suspense fallback={<div>Loading...</div>}>
+        <RegisterContent />
+      </Suspense>
     </BaseLayout>
   );
 }
