@@ -29,6 +29,20 @@ const sansation = Sansation({
 export const metadata: Metadata = {
   title: "ShIngenit - Plataforma de Alojamientos",
   description: "Descubre hoteles, hospedajes, moteles, restaurantes y bares en tu destino. Reserva fácilmente y disfruta de experiencias únicas.",
+  icons: {
+    icon: [
+      {
+        url: "https://juupotamdjqzpxuqdtco.supabase.co/storage/v1/object/public/public-assets/hl/icon_bg_ngenIT.png",
+        type: "image/png",
+      },
+      {
+        url: "/favicon.png",
+        type: "image/png",
+      }
+    ],
+    shortcut: "https://juupotamdjqzpxuqdtco.supabase.co/storage/v1/object/public/public-assets/hl/icon_bg_ngenIT.png",
+    apple: "https://juupotamdjqzpxuqdtco.supabase.co/storage/v1/object/public/public-assets/hl/icon_bg_ngenIT.png",
+  },
 };
 
 export default function RootLayout({
@@ -38,6 +52,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        <link 
+          rel="icon" 
+          href="https://juupotamdjqzpxuqdtco.supabase.co/storage/v1/object/public/public-assets/hl/icon_bg_ngenIT.png" 
+          type="image/png"
+        />
+        <link 
+          rel="shortcut icon" 
+          href="https://juupotamdjqzpxuqdtco.supabase.co/storage/v1/object/public/public-assets/hl/icon_bg_ngenIT.png" 
+          type="image/png"
+        />
+        <link 
+          rel="apple-touch-icon" 
+          href="https://juupotamdjqzpxuqdtco.supabase.co/storage/v1/object/public/public-assets/hl/icon_bg_ngenIT.png" 
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${archivo.variable} ${sansation.variable} antialiased`}
       >
