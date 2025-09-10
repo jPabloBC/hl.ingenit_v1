@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { usePermissions } from "@/hooks/usePermissions";
 
 import { Button } from "@/components/ui/button";
 import { 
@@ -21,9 +22,13 @@ import {
   Bell,
   ShoppingCart,
   UserCheck,
-  Trash2
+  Trash2,
+  Globe
 } from "lucide-react";
 import Image from "next/image";
+import AlertsDropdown from "@/components/hotel/AlertsDropdown";
+import TrialIndicator from "@/components/ui/trial-indicator";
+import LoadingPage from "@/components/ui/loading-page";
 
 interface User {
   id: string;
@@ -40,64 +45,95 @@ interface HotelLayoutProps {
 const mainNavigationItems = [
   {
     title: "Dashboard",
-    href: "/business-type/hotel",
+    href: "/hotel",
     icon: Home,
-    description: "Vista general del hotel"
+    description: "Vista general del hotel",
+    permission: "dashboard.view"
   },
   {
     title: "Ventas",
-    href: "/business-type/hotel/sales",
+    href: "/hotel/sales",
     icon: ShoppingCart,
-    description: "Venta de habitaciones"
+    description: "Venta de habitaciones",
+    permission: "reservations.create"
   },
   {
     title: "Recepción",
-    href: "/business-type/hotel/front-desk",
+    href: "/hotel/front-desk",
     icon: UserCheck,
-    description: "Check-in y check-out"
+    description: "Check-in y check-out",
+    permission: "reservations.checkin"
   },
   {
     title: "Habitaciones",
-    href: "/business-type/hotel/rooms",
+    href: "/hotel/rooms",
     icon: Bed,
-    description: "Gestión de habitaciones"
+    description: "Gestión de habitaciones",
+    permission: "rooms.view"
+  },
+  {
+    title: "Housekeeping",
+    href: "/hotel/housekeeping",
+    icon: Building2,
+    description: "Gestión de limpieza",
+    permission: "housekeeping.view"
   },
   {
     title: "Reservas",
-    href: "/business-type/hotel/reservations",
+    href: "/hotel/reservations",
     icon: Calendar,
-    description: "Sistema de reservas"
+    description: "Sistema de reservas",
+    permission: "reservations.view"
   },
   {
     title: "Huéspedes",
-    href: "/business-type/hotel/guests",
+    href: "/hotel/guests",
     icon: Users,
-    description: "Base de datos de clientes"
+    description: "Base de datos de clientes",
+    permission: "guests.view"
   },
   {
     title: "Pagos",
-    href: "/business-type/hotel/payments",
+    href: "/hotel/payments",
     icon: CreditCard,
-    description: "Transacciones Webpay"
+    description: "Transacciones Webpay",
+    permission: "reports.financial"
   },
   {
     title: "Reportes",
-    href: "/business-type/hotel/reports",
+    href: "/hotel/reports",
     icon: BarChart3,
-    description: "Estadísticas y análisis"
+    description: "Estadísticas y análisis",
+    permission: "reports.view"
+  },
+  {
+    title: "Channel Manager",
+    href: "/hotel/channel-manager",
+    icon: Globe,
+    description: "Gestión de canales",
+    permission: "settings.view"
+  },
+  {
+    title: "Alertas",
+    href: "/hotel/alerts",
+    icon: Bell,
+    description: "Notificaciones del sistema",
+    permission: "alerts.view"
   }
 ];
 
 const adminNavigationItem = {
   title: "Configuración SII",
-  href: "/business-type/hotel/settings",
+  href: "/hotel/settings",
   icon: Settings,
-  description: "Facturación electrónica"
+  description: "Facturación electrónica",
+  permission: "settings.view"
 };
 
 export default function HotelLayout({ children }: HotelLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { hasPermission } = usePermissions();
   const [user, setUser] = useState<User | null>(null);
   const [businessInfo, setBusinessInfo] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -119,6 +155,7 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
   useEffect(() => {
     checkUser();
   }, []);
+
 
   const checkUser = async () => {
     try {
@@ -150,11 +187,21 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
       setUser(userData);
 
       // Get business info
-      const { data: businessData } = await supabase
+      const { data: businessData, error: businessError } = await supabase
         .from('hl_business')
         .select('*')
         .eq('user_id', authUser.id)
         .single();
+
+      if (businessError) {
+        console.error('Error fetching business data:', businessError);
+        console.log('User ID being searched:', authUser.id);
+      } else {
+        console.log('Business data loaded:', businessData);
+        console.log('Business icon_url:', businessData?.icon_url);
+        console.log('Business name:', businessData?.business_name);
+        console.log('Full business object keys:', businessData ? Object.keys(businessData) : 'No data');
+      }
 
       setBusinessInfo(businessData);
       setLoading(false);
@@ -169,6 +216,7 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
     await supabase.auth.signOut();
     router.push('/login');
   };
+
 
   const handleIconUpload = async (file: File) => {
     try {
@@ -256,7 +304,7 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
   };
 
   const isActiveRoute = (href: string) => {
-    if (href === "/business-type/hotel") {
+          if (href === "/hotel") {
       // Handle both with and without trailing slash
       return pathname === href || pathname === href + "/";
     }
@@ -274,50 +322,43 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray9 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue8 mx-auto mb-4"></div>
-          <p className="text-gray4">Cargando...</p>
-        </div>
-      </div>
-    );
+    return <LoadingPage message="Cargando..." />;
   }
 
   return (
     <div className="min-h-screen bg-gray9 font-body">
-      <div className="h-screen">
+      <div className="h-screen flex">
         {/* Mobile sidebar overlay */}
         {sidebarOpen && (
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black bg-opacity-60 z-40 lg:hidden backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Sidebar */}
-        <div className={`fixed inset-y-0 left-0 z-50 bg-white shadow-xl transform transition-all duration-300 ease-in-out ${
+        <div className={`fixed lg:relative inset-y-0 left-0 z-50 bg-white shadow-2xl transform transition-all duration-300 ease-in-out ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        } ${sidebarCollapsed ? 'w-20' : 'w-64'}`}>
+        } ${sidebarCollapsed ? 'w-20' : 'w-80 lg:w-64'} flex-shrink-0`}>
         <div className="flex flex-col h-screen max-h-screen overflow-hidden">
           {/* Sidebar Header */}
-          <div className="flex items-center justify-between p-3 border-b border-gray8 flex-shrink-0">
+          <div className="flex items-center justify-between p-4 border-b border-gray8 flex-shrink-0 bg-gradient-to-r from-blue2 to-blue6">
             <div className="flex items-center space-x-3 flex-1 min-w-0">
-              <div className="w-14 h-14 flex items-center justify-center border-2 border-gray11 rounded-full flex-shrink-0">
+              <div className="w-18 h-18 flex items-center justify-center rounded-full flex-shrink-0">
                 <Image
-                  src="/assets/icon_ingenIT.png"
+                  src="/assets/icon_ingenIT_wt.png"
                   alt="INGENIT Hotel Icon"
-                  width={40}
-                  height={40}
+                  width={44}
+                  height={44}
                   className="h-10 w-10 object-contain"
                 />
               </div>
               {!sidebarCollapsed && (
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-xl font-light text-gray7 font-title truncate">
+                  <h2 className="text-xl font-light text-white font-title truncate">
                     INGENIT
                   </h2>
-                  <p className="text-xs text-gray6 truncate">Hotel Management</p>
+                  <p className="text-sm text-white opacity-90 truncate">Hotel Management</p>
                 </div>
               )}
             </div>
@@ -325,9 +366,9 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
               variant="ghost"
               size="sm"
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden flex-shrink-0"
+              className="lg:hidden flex-shrink-0 text-white hover:bg-white hover:bg-opacity-20"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
           
@@ -344,23 +385,30 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
           </div>
 
           {/* User Info */}
-          <div className="p-3 border-b border-gray8 flex-shrink-0">
+          <div className="p-4 border-b border-gray8 flex-shrink-0 bg-gray10">
             <div className="flex items-center space-x-3">
               <div 
-                className="bg-blue8 rounded-full w-12 h-12 flex items-center justify-center cursor-pointer hover:bg-blue6 transition-colors overflow-hidden"
+                className="bg-blue8 rounded-full w-14 h-14 flex items-center justify-center cursor-pointer hover:bg-blue6 transition-colors overflow-hidden shadow-lg"
                 onClick={() => setShowIconEditor(true)}
                 title="Click para cambiar el icono del usuario"
               >
                 {businessInfo?.icon_url ? (
                   <Image
                     src={businessInfo.icon_url}
-                    alt="User Icon"
-                    width={48}
-                    height={48}
+                    alt="Hotel Icon"
+                    width={56}
+                    height={56}
                     className="w-full h-full object-cover rounded-full"
+                    onError={(e) => {
+                      console.error('Error loading hotel icon:', businessInfo.icon_url);
+                      e.currentTarget.style.display = 'none';
+                    }}
+                    onLoad={() => {
+                      console.log('Hotel icon loaded successfully:', businessInfo.icon_url);
+                    }}
                   />
                 ) : (
-                  <div className="text-white text-4xl font-normal">
+                  <div className="text-white text-2xl font-bold">
                     {businessInfo?.business_name ? businessInfo.business_name.charAt(0).toUpperCase() : 'H'}
                   </div>
                 )}
@@ -368,14 +416,14 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
               {!sidebarCollapsed && (
                 <div className="flex-1 min-w-0">
                   {businessInfo && (
-                    <p className="text-lg font-semibold text-blue8 truncate">
+                    <p className="text-lg font-bold text-blue8 truncate">
                       {capitalizeText(businessInfo.business_name)}
                     </p>
                   )}
-                  <p className="text-base font-medium text-blue1 truncate">
+                  <p className="text-base font-semibold text-blue1 truncate">
                     {user?.name ? capitalizeText(user.name) : 'Usuario'}
                   </p>
-                  <p className="text-xs text-gray4 truncate">
+                  <p className="text-sm text-gray4 truncate">
                     {user?.email}
                   </p>
                 </div>
@@ -384,8 +432,10 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto min-h-0">
-            {mainNavigationItems.map((item) => {
+          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
+            {mainNavigationItems
+              .filter(item => hasPermission(item.permission))
+              .map((item) => {
               const Icon = item.icon;
               const isActive = isActiveRoute(item.href);
               
@@ -393,14 +443,14 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
                 <div key={item.href}>
                   <Button
                     variant={isActive ? "default" : "ghost"}
-                    className={`w-full h-auto p-2 transition-all duration-200 relative ${
+                    className={`w-full h-auto p-3 transition-all duration-200 relative rounded-lg ${
                       sidebarCollapsed 
                         ? 'justify-center' 
                         : 'justify-start'
                     } ${
                       isActive 
-                        ? 'bg-blue8 text-white hover:bg-blue6 shadow-md border-l-4 border-white' 
-                        : 'text-gray4 hover:text-blue1 hover:bg-blue15'
+                        ? 'bg-blue8 text-white hover:bg-blue6 shadow-lg border-l-4 border-white' 
+                        : 'text-gray4 hover:text-blue1 hover:bg-blue15 hover:shadow-md'
                     }`}
                     onClick={() => {
                       router.push(item.href);
@@ -408,16 +458,16 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
                     }}
                     title={sidebarCollapsed ? item.title : undefined}
                   >
-                    <Icon className={`h-5 w-5 ${sidebarCollapsed ? '' : 'mr-3'} ${
+                    <Icon className={`h-6 w-6 ${sidebarCollapsed ? '' : 'mr-3'} ${
                       isActive ? 'text-white' : ''
                     }`} />
                     {!sidebarCollapsed && (
                       <>
                         <div className="text-left">
-                          <div className={`font-medium ${isActive ? 'text-white' : ''}`}>{item.title}</div>
-                          <div className={`text-xs ${isActive ? 'text-white opacity-90' : 'opacity-75'}`}>{item.description}</div>
+                          <div className={`font-semibold text-base ${isActive ? 'text-white' : ''}`}>{item.title}</div>
+                          <div className={`text-sm ${isActive ? 'text-white opacity-90' : 'opacity-75'}`}>{item.description}</div>
                         </div>
-                        {isActive && <ChevronRight className="h-4 w-4 ml-auto text-white" />}
+                        {isActive && <ChevronRight className="h-5 w-5 ml-auto text-white" />}
                       </>
                     )}
                     {/* Active indicator for collapsed sidebar */}
@@ -431,22 +481,23 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
           </nav>
 
           {/* Admin Navigation */}
-          <div className="p-3 flex-shrink-0">
-            {(() => {
-              const Icon = adminNavigationItem.icon;
-              const isActive = isActiveRoute(adminNavigationItem.href);
-              
-              return (
+          {hasPermission(adminNavigationItem.permission) && (
+            <div className="p-4 flex-shrink-0">
+              {(() => {
+                const Icon = adminNavigationItem.icon;
+                const isActive = isActiveRoute(adminNavigationItem.href);
+                
+                return (
                 <Button
                   variant={isActive ? "default" : "ghost"}
-                  className={`w-full h-auto p-2 transition-all duration-200 relative ${
+                  className={`w-full h-auto p-3 transition-all duration-200 relative rounded-lg ${
                     sidebarCollapsed 
                       ? 'justify-center' 
                       : 'justify-start'
                   } ${
                     isActive 
-                      ? 'bg-blue8 text-white hover:bg-blue6 shadow-md border-l-4 border-white' 
-                      : 'text-gray4 hover:text-blue1 hover:bg-blue15'
+                      ? 'bg-blue8 text-white hover:bg-blue6 shadow-lg border-l-4 border-white' 
+                      : 'text-gray4 hover:text-blue1 hover:bg-blue15 hover:shadow-md'
                   }`}
                   onClick={() => {
                     router.push(adminNavigationItem.href);
@@ -454,16 +505,16 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
                   }}
                   title={sidebarCollapsed ? adminNavigationItem.title : undefined}
                 >
-                  <Icon className={`h-5 w-5 ${sidebarCollapsed ? '' : 'mr-3'} ${
+                  <Icon className={`h-6 w-6 ${sidebarCollapsed ? '' : 'mr-3'} ${
                     isActive ? 'text-white' : ''
                   }`} />
                   {!sidebarCollapsed && (
                     <>
                       <div className="text-left">
-                        <div className={`font-medium ${isActive ? 'text-white' : ''}`}>{adminNavigationItem.title}</div>
-                        <div className={`text-xs ${isActive ? 'text-white opacity-90' : 'opacity-75'}`}>{adminNavigationItem.description}</div>
+                        <div className={`font-semibold text-base ${isActive ? 'text-white' : ''}`}>{adminNavigationItem.title}</div>
+                        <div className={`text-sm ${isActive ? 'text-white opacity-90' : 'opacity-75'}`}>{adminNavigationItem.description}</div>
                       </div>
-                      {isActive && <ChevronRight className="h-4 w-4 ml-auto text-white" />}
+                      {isActive && <ChevronRight className="h-5 w-5 ml-auto text-white" />}
                     </>
                   )}
                   {/* Active indicator for collapsed sidebar */}
@@ -471,40 +522,41 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
                     <div className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-white rounded-l-full"></div>
                   )}
                 </Button>
-              );
-            })()}
-          </div>
+                );
+              })()}
+            </div>
+          )}
 
                               {/* Sidebar Footer */}
-                    <div className="p-3 border-t border-gray8 flex-shrink-0">
+                    <div className="p-4 border-t border-gray8 flex-shrink-0 bg-gray10">
             <Button
               variant="ghost"
-              className={`w-full text-gray4 hover:text-red-600 hover:bg-red-50 ${
+              className={`w-full text-gray4 hover:text-red-600 hover:bg-red-50 rounded-lg p-3 ${
                 sidebarCollapsed ? 'justify-center' : 'justify-start'
               }`}
               onClick={handleLogout}
               title={sidebarCollapsed ? "Cerrar Sesión" : undefined}
             >
-              <LogOut className={`h-5 w-5 ${sidebarCollapsed ? '' : 'mr-3'}`} />
-              {!sidebarCollapsed && "Cerrar Sesión"}
+              <LogOut className={`h-6 w-6 ${sidebarCollapsed ? '' : 'mr-3'}`} />
+              {!sidebarCollapsed && <span className="font-semibold">Cerrar Sesión</span>}
             </Button>
           </div>
         </div>
       </div>
 
-              {/* Main Content */}
-        <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'} bg-gray9 min-h-screen`}>
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col bg-gray9 min-h-screen">
           {/* Top Bar */}
-          <div className="bg-white border-b border-gray8 px-4 py-3">
+          <div className="bg-white border-b border-gray8 px-4 py-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setSidebarOpen(true)}
-                  className="lg:hidden"
+                  className="lg:hidden hover:bg-blue15 rounded-lg p-2"
                 >
-                  <Menu className="h-5 w-5" />
+                  <Menu className="h-6 w-6 text-blue8" />
                 </Button>
                                         <div>
                           <h1 className="text-xl font-bold text-blue1 font-title">
@@ -517,16 +569,16 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
                         </div>
               </div>
               <div className="flex items-center space-x-4">
-                <Button variant="outline" size="sm" className="flex items-center space-x-2">
-                  <Bell className="h-4 w-4" />
-                  <span className="hidden sm:inline">Notificaciones</span>
-                </Button>
+                <TrialIndicator />
+                {businessInfo && (
+                  <AlertsDropdown businessId={businessInfo.id} />
+                )}
               </div>
             </div>
           </div>
 
-                            {/* Page Content */}
-                  <main className="p-6">
+          {/* Page Content */}
+          <main className="p-3 overflow-y-auto flex-1">
             {children}
           </main>
         </div>

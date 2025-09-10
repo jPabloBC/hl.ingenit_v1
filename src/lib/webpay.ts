@@ -52,10 +52,9 @@ export const getReturnUrls = () => {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   return {
     returnUrl: `${baseUrl}/api/webpay/return`,
-    finalUrl: `${baseUrl}/business-type/hotel/payments/success`
+            finalUrl: `${baseUrl}/hotel/payments/success`
   };
 };
-
 
 
 

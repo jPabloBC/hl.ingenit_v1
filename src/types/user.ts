@@ -18,7 +18,7 @@ export interface User {
 export interface Business {
   id: number;
   user_id: number;
-  business_type: 'hotel' | 'restaurant';
+  business_type: 'hotel';
   name: string;
   rut: string;
   address: string;
@@ -39,25 +39,25 @@ export interface UserWithBusiness extends User {
 export const ROLE_PERMISSIONS = {
   admin: {
     canManageUsers: true,
-    canManageBusinesses: true,
+    canManageBusiness: true,
     canViewAllData: true,
     canEditSystemSettings: true,
   },
   customer: {
     canManageUsers: false,
-    canManageBusinesses: false,
+    canManageBusiness: false,
     canViewAllData: false,
     canEditSystemSettings: false,
   },
   manager: {
     canManageUsers: true,
-    canManageBusinesses: true,
+    canManageBusiness: true,
     canViewAllData: true,
     canEditSystemSettings: false,
   },
   staff: {
     canManageUsers: false,
-    canManageBusinesses: false,
+    canManageBusiness: false,
     canViewAllData: false,
     canEditSystemSettings: false,
   },

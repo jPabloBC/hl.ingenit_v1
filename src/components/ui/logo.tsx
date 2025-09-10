@@ -34,7 +34,7 @@ export default function Logo({
 }: LogoProps) {
   const logoConfig = {
     default: {
-      src: "/assets/logo_transparent_ingenIT.png",
+      src: "/assets/icon_ingenIT.png",
       alt: "INGENIT Logo"
     },
     white: {

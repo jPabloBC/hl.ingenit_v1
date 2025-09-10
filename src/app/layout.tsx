@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Archivo, Sansation } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,24 +25,33 @@ const sansation = Sansation({
   subsets: ["latin"],
   weight: ["300", "400", "700"],
   display: "swap",
+  fallback: ["system-ui", "arial"],
 });
 
 export const metadata: Metadata = {
-  title: "ShIngenit - Plataforma de Alojamientos",
-  description: "Descubre hoteles, hospedajes, moteles, restaurantes y bares en tu destino. Reserva fácilmente y disfruta de experiencias únicas.",
+  title: "HL Ingenit - Hotel Management System",
+  description:
+    "Sistema de gestión hotelera completo con reservas, check-in/out, pagos y reportes avanzados.",
+  keywords: ["hotel", "management", "reservas", "check-in", "pagos", "reportes"],
+  authors: [{ name: "Ingenit Team" }],
   icons: {
     icon: [
-      {
-        url: "https://juupotamdjqzpxuqdtco.supabase.co/storage/v1/object/public/public-assets/hl/icon_bg_ngenIT.png",
-        type: "image/png",
-      },
-      {
-        url: "/favicon.png",
-        type: "image/png",
-      }
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/assets/icon_ingenIT.png", sizes: "192x192", type: "image/png" },
     ],
-    shortcut: "https://juupotamdjqzpxuqdtco.supabase.co/storage/v1/object/public/public-assets/hl/icon_bg_ngenIT.png",
-    apple: "https://juupotamdjqzpxuqdtco.supabase.co/storage/v1/object/public/public-assets/hl/icon_bg_ngenIT.png",
+    apple: [
+      { url: "/assets/icon_ingenIT.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+  },
+  manifest: "/manifest.json",
+  openGraph: {
+    title: "HL Ingenit - Hotel Management System",
+    description: "Sistema de gestión hotelera completo con reservas, check-in/out, pagos y reportes avanzados.",
+    type: "website",
+    locale: "es_CL",
+    siteName: "HL Ingenit",
   },
 };
 
@@ -52,26 +62,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <head>
-        <link 
-          rel="icon" 
-          href="https://juupotamdjqzpxuqdtco.supabase.co/storage/v1/object/public/public-assets/hl/icon_bg_ngenIT.png" 
-          type="image/png"
-        />
-        <link 
-          rel="shortcut icon" 
-          href="https://juupotamdjqzpxuqdtco.supabase.co/storage/v1/object/public/public-assets/hl/icon_bg_ngenIT.png" 
-          type="image/png"
-        />
-        <link 
-          rel="apple-touch-icon" 
-          href="https://juupotamdjqzpxuqdtco.supabase.co/storage/v1/object/public/public-assets/hl/icon_bg_ngenIT.png" 
-        />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${archivo.variable} ${sansation.variable} antialiased`}
       >
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );

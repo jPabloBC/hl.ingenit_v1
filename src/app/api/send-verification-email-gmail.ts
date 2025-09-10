@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
           <p>Si no solicitaste esta cuenta, puedes ignorar este email.</p>
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
           <p style="color: #666; font-size: 12px;">
-            INGENIT - Plataforma de gestión para hoteles y restaurantes
+            INGENIT - Plataforma de gestión para hoteles
           </p>
         </div>
       `

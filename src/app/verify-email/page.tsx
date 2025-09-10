@@ -98,28 +98,28 @@ function VerifyEmailContent() {
   }, [status, countdown, router]);
 
   return (
-    <div className="w-full max-w-lg mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-[60vh]">
-        <h1 className="text-3xl font-bold text-blue1 mb-6 font-title text-center">Verificación de Correo</h1>
+    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto px-4 py-8 sm:py-12 flex flex-col items-center justify-center min-h-[60vh]">
+        <h1 className="text-2xl sm:text-3xl font-bold text-blue1 mb-4 sm:mb-6 font-title text-center">Verificación de Correo</h1>
         {status === "pending" && (
-          <div className="text-blue8 font-body text-base text-center bg-blue-50 border border-blue-200 rounded-lg px-6 py-4 shadow-sm w-full">Verificando...</div>
+          <div className="text-blue8 font-body text-sm sm:text-base text-center bg-blue-50 border border-blue-200 rounded-lg px-4 sm:px-6 py-3 sm:py-4 shadow-sm w-full">Verificando...</div>
         )}
         {status === "success" && (
-          <div className="text-green-700 font-body text-base text-center bg-green-50 border border-green-200 rounded-lg px-6 py-4 shadow-sm w-full mb-4">
+          <div className="text-green-700 font-body text-sm sm:text-base text-center bg-green-50 border border-green-200 rounded-lg px-4 sm:px-6 py-3 sm:py-4 shadow-sm w-full mb-4">
             <div>{message}</div>
-            <div className="mt-2 text-sm text-green-600">
+            <div className="mt-2 text-xs sm:text-sm text-green-600">
               Redirigiendo al login en {countdown} segundos...
             </div>
           </div>
         )}
         {status === "error" && (
           <>
-            <div className="text-red-700 font-body text-base text-center bg-red-50 border border-red-200 rounded-lg px-6 py-4 shadow-sm w-full mb-4">{message}</div>
+            <div className="text-red-700 font-body text-sm sm:text-base text-center bg-red-50 border border-red-200 rounded-lg px-4 sm:px-6 py-3 sm:py-4 shadow-sm w-full mb-4">{message}</div>
             {showResend && (
               <div className="w-full max-w-xs mx-auto mt-2">
-                <label className="block text-sm font-medium text-blue1 mb-2 font-title text-center">Correo electrónico</label>
+                <label className="block text-xs sm:text-sm font-medium text-blue1 mb-2 font-title text-center">Correo electrónico</label>
                 <input
                   type="email"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue8 focus:border-transparent font-body lowercase text-center"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue8 focus:border-transparent font-body lowercase text-center text-sm sm:text-base"
                   placeholder="tu@email.com"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
@@ -131,7 +131,7 @@ function VerifyEmailContent() {
           </>
         )}
         <Link href="/login">
-          <Button className="mt-6 bg-blue8 hover:bg-blue6 text-white font-body w-full">Ir a Iniciar Sesión</Button>
+          <Button className="mt-4 sm:mt-6 bg-blue8 hover:bg-blue6 text-white font-body w-full text-sm sm:text-base py-2 sm:py-3">Ir a Iniciar Sesión</Button>
         </Link>
       </div>
     );

@@ -1,0 +1,36 @@
+{
+    "name": "HL Ingenit - Hotel Management System",
+    "short_name": "HL Ingenit",
+    "description": "Sistema de gestión hotelera completo con reservas, check-in/out, pagos y reportes avanzados.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#1e40af",
+    "orientation": "portrait-primary",
+    "icons": [
+      {
+        "src": "/favicon.ico",
+        "sizes": "any"
+      },
+      {
+        "src": "/favicon.png",
+        "sizes": "32x32",
+        "type": "image/png"
+      },
+      {
+        "src": "/assets/icon_ingenIT.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "/assets/icon_ingenIT.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+      }
+    ],
+    "categories": ["business", "productivity", "travel"],
+    "lang": "es",
+    "dir": "ltr"
+  }
