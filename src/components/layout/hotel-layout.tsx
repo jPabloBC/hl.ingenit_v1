@@ -25,7 +25,6 @@ import {
   Trash2,
   Globe
 } from "lucide-react";
-import Image from "next/image";
 import AlertsDropdown from "@/components/hotel/AlertsDropdown";
 import TrialIndicator from "@/components/ui/trial-indicator";
 import LoadingPage from "@/components/ui/loading-page";
@@ -250,25 +249,9 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
         .from('hotel')
         .getPublicUrl(fileName);
 
+      console.log('Public URL generated:', publicUrl);
+
       // Update business record with icon URL
-      console.log('Attempting to update business with icon URL:', publicUrl);
-      console.log('User ID:', user.id);
-      
-      // First, let's check if the business record exists
-      const { data: existingBusiness, error: checkError } = await supabase
-        .from('hl_business')
-        .select('id, user_id, business_name')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (checkError) {
-        console.error('Error checking business:', checkError);
-        alert(`Error al verificar el negocio: ${checkError.message}`);
-        return;
-      }
-      
-      console.log('Existing business record:', existingBusiness);
-      
       const { data: updateData, error: updateError } = await supabase
         .from('hl_business')
         .update({ 
@@ -345,11 +328,9 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
           <div className="flex items-center justify-between p-4 border-b border-gray8 flex-shrink-0 bg-gradient-to-r from-blue2 to-blue6">
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               <div className="w-18 h-18 flex items-center justify-center rounded-full flex-shrink-0">
-                <Image
+                <img
                   src="/assets/icon_ingenIT_wt.png"
                   alt="INGENIT Hotel Icon"
-                  width={44}
-                  height={44}
                   className="h-10 w-10 object-contain"
                 />
               </div>
@@ -393,11 +374,9 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
                 title="Click para cambiar el icono del usuario"
               >
                 {businessInfo?.icon_url ? (
-                  <Image
+                  <img
                     src={businessInfo.icon_url}
                     alt="Hotel Icon"
-                    width={56}
-                    height={56}
                     className="w-full h-full object-cover rounded-full"
                     onError={(e) => {
                       console.error('Error loading hotel icon:', businessInfo.icon_url);
@@ -604,11 +583,9 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
               <div className="flex justify-center mb-4">
                 <div className="bg-blue8 rounded-full w-16 h-16 flex items-center justify-center overflow-hidden">
                   {businessInfo?.icon_url ? (
-                    <Image
+                    <img
                       src={businessInfo.icon_url}
                       alt="Hotel Icon"
-                      width={64}
-                      height={64}
                       className="w-full h-full object-cover rounded-full"
                     />
                   ) : (

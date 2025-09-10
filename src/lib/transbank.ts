@@ -18,8 +18,13 @@ export const getTransbankOptions = () => {
 };
 
 export const getWebpayUrls = () => {
-  // Para producción, usar la URL de la app desplegada
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://hl.ingenit.cl';
+  // Para desarrollo local, usar localhost
+  // IMPORTANTE: Para testing con Transbank, necesitas usar una URL pública
+  // Puedes usar ngrok: ngrok http 3000
+  const baseUrl = process.env.NODE_ENV === 'production' 
+    ? (process.env.NEXT_PUBLIC_APP_URL || 'https://hl.ingenit.cl')
+    : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
+    
   return {
     returnUrl: `${baseUrl}/api/webpay/return`,
     finalSuccessUrl: `${baseUrl}/hotel?payment=success`,

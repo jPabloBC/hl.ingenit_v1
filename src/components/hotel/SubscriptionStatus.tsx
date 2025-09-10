@@ -10,8 +10,9 @@ interface SubscriptionStatusProps {
 }
 
 export default function SubscriptionStatus({ showDetails = false, onUpgrade }: SubscriptionStatusProps) {
-  const { subscription, loading, getTrialStatus } = useSubscription();
+  const { subscription, loading, getTrialStatus, getActiveSubscriptionDays } = useSubscription();
   const [timeRemaining, setTimeRemaining] = useState<string>('');
+
 
   useEffect(() => {
     if (!subscription) return;
@@ -49,16 +50,17 @@ export default function SubscriptionStatus({ showDetails = false, onUpgrade }: S
 
   if (loading) {
     return (
-      <div className="bg-gray-50 rounded-lg p-4 animate-pulse">
+      <div className="bg-gray-50 rounded-lg p-4 animate-pulse mb-4">
         <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
         <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+        <div className="text-xs text-gray-500 mt-2">Cargando estado de suscripción...</div>
       </div>
     );
   }
 
   if (!subscription) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
         <div className="flex items-center">
           <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
           <div>
@@ -141,19 +143,60 @@ export default function SubscriptionStatus({ showDetails = false, onUpgrade }: S
   }
 
   // Suscripción activa (no en período de prueba)
+  const activeDaysRemaining = getActiveSubscriptionDays();
+  
+  // Calcular fecha de vencimiento
+  const getNextExpirationDate = () => {
+    if (!subscription) return null;
+    
+    // Si tiene subscription_end_date, usarla
+    if (subscription.subscription_end_date) {
+      return new Date(subscription.subscription_end_date);
+    }
+    
+    // Si tiene next_billing_date, usarla
+    if (subscription.next_billing_date) {
+      return new Date(subscription.next_billing_date);
+    }
+    
+    // Si no hay fechas pero está activa, calcular desde trial_end_date + 30 días
+    if (subscription.trial_end_date) {
+      const trialEnd = new Date(subscription.trial_end_date);
+      return new Date(trialEnd.getTime() + 30 * 24 * 60 * 60 * 1000);
+    }
+    
+    return null;
+  };
+  
+  const nextExpirationDate = getNextExpirationDate();
+
   return (
-    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-2">
+    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-3">
       <div className="flex items-center">
         <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
         <div>
           <h3 className="text-sm font-medium text-green-800">
-            Suscripción Activa - {subscription.plan_name}
+            {subscription.trial_expired ? 'Suscripción Activa' : 'Período de Prueba'} - {subscription.plan_name}
           </h3>
           <p className="text-xs text-green-700">
-            Plan activo con acceso completo a todas las funcionalidades
+            {subscription.trial_expired 
+              ? 'Plan activo con acceso completo a todas las funcionalidades'
+              : 'Plan pagado - Acceso completo durante período de prueba'
+            }
+            {activeDaysRemaining > 0 && (
+              <> - {activeDaysRemaining} día{activeDaysRemaining > 1 ? 's' : ''} restante{activeDaysRemaining > 1 ? 's' : ''} de período de prueba</>
+            )}
           </p>
-          {showDetails && subscription.next_billing_date && (
+          {showDetails && nextExpirationDate && (
             <div className="mt-2 text-xs text-green-600">
+              <div className="flex items-center">
+                <Calendar className="h-3 w-3 mr-1" />
+                Próximo vencimiento: {nextExpirationDate.toLocaleDateString('es-CL')}
+              </div>
+            </div>
+          )}
+          {showDetails && subscription.next_billing_date && (
+            <div className="mt-1 text-xs text-green-600">
               <div className="flex items-center">
                 <Calendar className="h-3 w-3 mr-1" />
                 Próximo pago: {new Date(subscription.next_billing_date).toLocaleDateString('es-CL')}

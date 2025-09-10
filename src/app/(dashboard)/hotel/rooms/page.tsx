@@ -1325,7 +1325,7 @@ function RoomsManagementContent() {
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-4">
             <div>
               <h1 className="text-3xl font-bold text-blue1 font-title">
@@ -1378,7 +1378,7 @@ function RoomsManagementContent() {
 
         {/* Plan Status Indicator */}
         {selectedPlan && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mb-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
@@ -1447,9 +1447,9 @@ function RoomsManagementContent() {
           </div>
         </div>
 
-        {/* Bulk Selection Toolbar */}
+        {/* Bulk Selection Toolbar - Sticky */}
         {selectedRooms.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 sticky top-1 z-50 shadow-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <span className="text-sm font-medium text-blue-800">
@@ -1588,18 +1588,31 @@ function RoomsManagementContent() {
             .map(Number)
             .sort((a, b) => a - b);
 
-          return sortedFloors.map((floor) => (
+          return sortedFloors.map((floor) => {
+            // Contar habitaciones seleccionadas en este piso
+            const selectedRoomsInFloor = roomsByFloor[floor].filter(room => selectedRooms.includes(room.id));
+            
+            return (
             <div key={floor} className="mb-8">
               {/* Floor Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-blue8 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">
+                  <div className={`rounded-full w-8 h-8 flex items-center justify-center font-bold ${
+                    selectedRoomsInFloor.length > 0 
+                      ? 'bg-green-600 text-white' 
+                      : 'bg-blue8 text-white'
+                  }`}>
                     {floor}
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-blue1">Piso {floor}</h2>
                     <p className="text-sm text-gray4">
                       {roomsByFloor[floor].length} habitación{roomsByFloor[floor].length !== 1 ? 'es' : ''}
+                      {selectedRoomsInFloor.length > 0 && (
+                        <span className="ml-2 text-green-600 font-medium">
+                          ({selectedRoomsInFloor.length} seleccionada{selectedRoomsInFloor.length !== 1 ? 's' : ''})
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -1835,7 +1848,8 @@ function RoomsManagementContent() {
                   })}
               </div>
             </div>
-          ));
+            );
+          });
         })()}
 
         {filteredRooms.length === 0 && !loading && (
@@ -2382,6 +2396,21 @@ function RoomsManagementContent() {
                 >
                   <X className="h-6 w-6" />
                 </button>
+              </div>
+              
+              {/* Selected Rooms Info */}
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 className="text-sm font-medium text-blue-800 mb-2">Habitaciones Seleccionadas:</h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedRooms.map(roomId => {
+                    const room = rooms.find(r => r.id === roomId);
+                    return room ? (
+                      <span key={roomId} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {room.number} (Piso {room.floor})
+                      </span>
+                    ) : null;
+                  })}
+                </div>
               </div>
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

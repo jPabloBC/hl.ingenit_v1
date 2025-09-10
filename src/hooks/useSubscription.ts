@@ -74,21 +74,7 @@ export function useSubscription() {
       console.log('🔍 Consultando suscripción en base de datos...');
       const { data: subscription, error: subscriptionError } = await supabase
         .from('hl_user_subscriptions')
-        .select(`
-          id,
-          user_id,
-          business_id,
-          plan_id,
-          status,
-          trial_start_date,
-          trial_end_date,
-          subscription_start_date,
-          subscription_end_date,
-          next_billing_date,
-          amount,
-          currency,
-          metadata
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .single();
 
@@ -351,6 +337,48 @@ export function useSubscription() {
     };
   };
 
+  const getActiveSubscriptionDays = () => {
+    if (!subscription) {
+      return 0;
+    }
+    
+    // Si está en trial (status = 'trial' o trial no ha expirado), calcular días restantes de trial
+    if (subscription.status === 'trial' || !subscription.trial_expired) {
+      const trialEnd = new Date(subscription.trial_end_date);
+      const now = new Date();
+      const diff = trialEnd.getTime() - now.getTime();
+      return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    }
+    
+    // Si tiene subscription_end_date, calcular días restantes hasta esa fecha
+    if (subscription.subscription_end_date) {
+      const endDate = new Date(subscription.subscription_end_date);
+      const now = new Date();
+      const diff = endDate.getTime() - now.getTime();
+      return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    }
+    
+    // Si tiene next_billing_date, calcular días hasta el próximo pago
+    if (subscription.next_billing_date) {
+      const nextBilling = new Date(subscription.next_billing_date);
+      const now = new Date();
+      const diff = nextBilling.getTime() - now.getTime();
+      return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    }
+    
+    // Si no hay fechas pero está activa, calcular desde trial_end_date + 30 días
+    // Esto es para usuarios que pagaron pero no tienen fechas de suscripción configuradas
+    if (subscription.trial_end_date && subscription.status === 'active') {
+      const trialEnd = new Date(subscription.trial_end_date);
+      const subscriptionEnd = new Date(trialEnd.getTime() + 30 * 24 * 60 * 60 * 1000); // +30 días
+      const now = new Date();
+      const diff = subscriptionEnd.getTime() - now.getTime();
+      return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    }
+    
+    return 0;
+  };
+
   return {
     subscription,
     limits,
@@ -360,6 +388,7 @@ export function useSubscription() {
     validateBeforeAdd,
     refreshLimits,
     getTrialStatus,
+    getActiveSubscriptionDays,
     reload: loadSubscription
   };
 }

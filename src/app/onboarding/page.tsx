@@ -485,6 +485,7 @@ function OnboardingContent() {
       return;
     }
     
+    console.log('🚀 INICIANDO SUBMIT - VERSIÓN ACTUALIZADA');
     setLoading(true);
     setError("");
     
@@ -503,9 +504,11 @@ function OnboardingContent() {
       }
 
       let finalIconUrl = iconUrl;
+      console.log('🔍 Initial finalIconUrl:', finalIconUrl);
 
       // Subir archivo si se seleccionó uno
       if (iconFile) {
+        console.log('📁 Uploading icon file:', iconFile.name);
         try {
           // Generar nombre único para el archivo
           const fileExtension = iconFile.name.split('.').pop();
@@ -530,6 +533,7 @@ function OnboardingContent() {
             .getPublicUrl(filePath);
 
           finalIconUrl = urlData.publicUrl;
+          console.log('✅ Icon URL generated:', finalIconUrl);
         } catch (uploadErr: any) {
           console.error('Error subiendo icono:', uploadErr);
           setError(`Error subiendo icono: ${uploadErr.message}`);
@@ -582,6 +586,7 @@ function OnboardingContent() {
       // DEBUG: Verificar contenido de businessData
       console.log(`[${executionId}] businessData antes del insert:`, businessData);
       console.log(`[${executionId}] Claves de businessData:`, Object.keys(businessData));
+      console.log(`[${executionId}] finalIconUrl final:`, finalIconUrl);
 
       let businessId: string;
 
@@ -600,7 +605,7 @@ function OnboardingContent() {
             city: businessData.city,
             address: businessData.address,
             rooms_count: businessData.rooms_count,
-            icon_url: businessData.icon_url
+            icon_url: finalIconUrl
           })
           .eq('user_id', user.id)
           .select('id')
@@ -611,36 +616,43 @@ function OnboardingContent() {
         }
         businessId = updatedBusiness.id;
       } else {
-        // SOLUCIÓN: Usar función RPC que evita triggers
-        const { data: newBizId, error: rpcErr } = await supabase.rpc('create_business_final', {
-          p_business_name: businessName.trim(),
-          p_business_type: businessType || 'hotel',
-          p_rut: rut.trim() || null,
-          p_business_number: phoneNumber ? parseInt(phoneNumber, 10) : null,
-          p_country: getCountryName(countryCode),
-          p_region: states.find(s => s.isoCode === stateCode)?.name || stateCode,
-          p_city: cityName.trim() || null,
-          p_address: address.trim() || null,
-          p_rooms_count: getTotalRooms() || 0,
-          p_icon_url: iconUrl || null,
-          p_extra: {
-            onboarding_completed: true,
-            completed_at: new Date().toISOString(),
-            floors_config: floors.map(floor => ({
-              floor_number: floor.floorNumber,
-              rooms_count: floor.roomsCount,
-              start_number: floor.startNumber,
-              numbering_system: floor.numberingSystem,
-              room_numbers: getRoomNumbers(floor)
-            })),
-            total_rooms: getTotalRooms()
-          },
-          p_user_id: (await supabase.auth.getUser()).data.user?.id || null
-        });
+        // Crear nuevo negocio directamente
+        const { data: newBusiness, error: businessError } = await supabase
+          .schema("public")
+          .from('hl_business')
+          .insert([{
+            user_id: user.id,
+            business_name: businessName.trim(),
+            business_type: businessType || 'hotel',
+            rut: rut.trim() || null,
+            business_number: phoneNumber ? parseInt(phoneNumber, 10) : null,
+            country: getCountryName(countryCode),
+            region: states.find(s => s.isoCode === stateCode)?.name || stateCode,
+            city: cityName.trim() || null,
+            address: address.trim() || null,
+            rooms_count: getTotalRooms() || 0,
+            icon_url: finalIconUrl || null,
+            extra: JSON.stringify({
+              onboarding_completed: true,
+              completed_at: new Date().toISOString(),
+              floors_config: floors.map(floor => ({
+                floor_number: floor.floorNumber,
+                rooms_count: floor.roomsCount,
+                start_number: floor.startNumber,
+                numbering_system: floor.numberingSystem,
+                room_numbers: getRoomNumbers(floor)
+              })),
+              total_rooms: getTotalRooms()
+            }),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }])
+          .select('id')
+          .single();
 
-        console.log('RPC create_business_final result -> data:', newBizId, 'error:', rpcErr);
-        if (rpcErr) throw rpcErr;
-        businessId = newBizId as string;
+        console.log('Insert business result -> data:', newBusiness, 'error:', businessError);
+        if (businessError) throw businessError;
+        businessId = newBusiness.id;
       }
 
       // PRIMERO: Verificar habitaciones existentes
@@ -734,6 +746,23 @@ function OnboardingContent() {
         } else {
           console.log('Habitaciones creadas exitosamente:', insertedRooms);
         }
+      }
+
+      // Actualizar business_id en suscripción (siempre, independientemente del plan)
+      try {
+        console.log('Actualizando business_id en suscripción...');
+        const { error: updateError } = await supabase
+          .from('hl_user_subscriptions')
+          .update({ business_id: businessId })
+          .eq('user_id', user.id);
+          
+        if (updateError) {
+          console.warn('Error actualizando business_id en suscripción:', updateError);
+        } else {
+          console.log('Business_id actualizado en suscripción');
+        }
+      } catch (updateError) {
+        console.warn('Error actualizando business_id:', updateError);
       }
 
       // Crear suscripción si no existe (solo en creación, no en edición)

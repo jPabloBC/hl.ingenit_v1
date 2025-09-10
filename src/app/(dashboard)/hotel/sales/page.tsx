@@ -1531,6 +1531,11 @@ export default function SalesPage() {
     return <LoadingPage message="Cargando ventas..." />;
   }
 
+  // Check if rooms need configuration
+  const needsRoomConfiguration = rooms.length > 0 && rooms.every(room => 
+    room.type === 'single' && room.price === 0 && room.capacity === 2
+  );
+
   return (
     <div className="w-full h-full">
         {/* Header */}
@@ -1547,6 +1552,34 @@ export default function SalesPage() {
             </div>
           </div>
         </div>
+
+        {/* Room Configuration Alert */}
+        {needsRoomConfiguration && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-start space-x-3 flex-1">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    Configuración de Habitaciones Requerida
+                  </h3>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    Las habitaciones están configuradas con valores predeterminados. Para personalizar precios, tipos y capacidades según las características de tu hotel, ve a la sección de Habitaciones.
+                  </p>
+                </div>
+              </div>
+              <div className="ml-4 flex-shrink-0 flex items-center">
+                <Button
+                  onClick={() => router.push('/hotel/rooms')}
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white text-sm px-4 py-2"
+                >
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Configurar Habitaciones
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Overdue Checkouts Alert Panel */}
         {overdueCheckouts.length > 0 && (

@@ -11,7 +11,7 @@ mkdir -p backups
 # Git snapshot + tag
 git add -A
 git commit -m "deploy $NAME $TS" || true
-git tag -f "deploy-$TS"
+git tag -f "backup-$TS"
 git push --follow-tags
 
 # ZIP del estado actual

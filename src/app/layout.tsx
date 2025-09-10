@@ -36,14 +36,14 @@ export const metadata: Metadata = {
   authors: [{ name: "Ingenit Team" }],
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", sizes: "any" },
       { url: "/favicon.png", sizes: "32x32", type: "image/png" },
       { url: "/assets/icon_ingenIT.png", sizes: "192x192", type: "image/png" },
     ],
     apple: [
       { url: "/assets/icon_ingenIT.png", sizes: "180x180", type: "image/png" },
     ],
-    shortcut: "/favicon.ico",
+    shortcut: "/favicon.png",
   },
   manifest: "/manifest.json",
   openGraph: {
