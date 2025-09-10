@@ -220,6 +220,11 @@ export function useSubscription() {
 
   useEffect(() => {
     loadSubscription();
+    
+    // Actualizar suscripción cada 5 minutos para mantener datos frescos
+    const interval = setInterval(loadSubscription, 300000);
+    
+    return () => clearInterval(interval);
   }, [loadSubscription]);
 
   const createSubscription = async (planId: string) => {

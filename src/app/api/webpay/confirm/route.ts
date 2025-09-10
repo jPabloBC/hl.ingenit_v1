@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
           status: 'active',
           payment_status: 'paid',
           last_payment_date: new Date().toISOString(),
-          next_payment_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          next_billing_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           updated_at: new Date().toISOString()
         })
         .eq('user_id', transaction.user_id);

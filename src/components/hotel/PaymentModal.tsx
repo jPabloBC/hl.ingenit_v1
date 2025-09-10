@@ -7,6 +7,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { formatCLP } from "@/lib/currency";
 import { supabase } from "@/lib/supabase";
 import { useSearchParams } from "next/navigation";
+import BankTransferModal from "./BankTransferModal";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -119,6 +120,8 @@ export default function PaymentModal({ isOpen, onClose, onPaymentSuccess }: Paym
   const [paymentMethod, setPaymentMethod] = useState<'webpay' | 'transfer'>('webpay');
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [paymentMessage, setPaymentMessage] = useState<string>('');
+  const [showBankTransferModal, setShowBankTransferModal] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const searchParams = useSearchParams();
   const processedParamsRef = useRef<Set<string>>(new Set());
 
@@ -136,6 +139,17 @@ export default function PaymentModal({ isOpen, onClose, onPaymentSuccess }: Paym
       setPaymentMessage('');
     }
   }, [isOpen, subscription]);
+
+  // Obtener email del usuario
+  useEffect(() => {
+    const getUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    };
+    getUserEmail();
+  }, []);
 
   // Manejar parámetros de URL para mostrar mensajes de pago
   useEffect(() => {
@@ -193,6 +207,12 @@ export default function PaymentModal({ isOpen, onClose, onPaymentSuccess }: Paym
 
   const handleUpgrade = async () => {
     if (!selectedPlan) return;
+
+    if (paymentMethod === 'transfer') {
+      // Mostrar modal de transferencia bancaria
+      setShowBankTransferModal(true);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -269,16 +289,16 @@ export default function PaymentModal({ isOpen, onClose, onPaymentSuccess }: Paym
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-300 bg-gray-50">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Actualizar Plan de Suscripción</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Actualizar Plan de Suscripción</h2>
             <p className="text-gray-600 mt-1">Elige el plan que mejor se adapte a tu hotel</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-200 rounded-full transition-colors"
           >
-            <X className="h-6 w-6 text-gray-500" />
+            <X className="h-6 w-6 text-gray-600" />
           </button>
         </div>
 
@@ -330,14 +350,16 @@ export default function PaymentModal({ isOpen, onClose, onPaymentSuccess }: Paym
 
         {/* Current Plan Status */}
         {subscription && (
-          <div className="p-6 bg-blue-50 border-b border-blue-200">
+          <div className="p-6 bg-gray10 border-b border-gray-300">
             <div className="flex items-center">
-              <Clock className="h-5 w-5 text-blue-600 mr-2" />
+              <div className="w-8 h-8 bg-blue7 rounded-lg flex items-center justify-center mr-3 shadow-sm">
+                <Clock className="h-4 w-4 text-white" />
+              </div>
               <div>
-                <h3 className="text-sm font-medium text-blue-800">
+                <h3 className="text-sm font-medium text-gray-800">
                   Plan Actual: {subscription.plan_name}
                 </h3>
-                <p className="text-xs text-blue-700">
+                <p className="text-xs text-gray-600">
                   {subscription.status === 'trial' ? 'Período de prueba' : 'Suscripción activa'}
                   {subscription.trial_days_remaining && subscription.trial_days_remaining > 0 && (
                     <> - {subscription.trial_days_remaining} días restantes</>
@@ -359,20 +381,20 @@ export default function PaymentModal({ isOpen, onClose, onPaymentSuccess }: Paym
               return (
                 <div
                   key={plan.id}
-                  className={`relative rounded-xl border-2 p-6 cursor-pointer transition-all ${
+                  className={`relative rounded-xl border-2 p-6 cursor-pointer transition-all shadow-sm ${
                     isSelected
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-blue7 bg-gray10'
                       : isCurrentPlan
                       ? 'border-green-500 bg-green-50'
                       : canUpgrade
-                      ? 'border-gray-200 hover:border-blue-300 hover:shadow-lg'
-                      : 'border-gray-200 bg-gray-50 opacity-60'
+                      ? 'border-gray-300 hover:border-blue7 hover:shadow-lg bg-gray-50'
+                      : 'border-gray-300 bg-gray-100 opacity-60'
                   }`}
                   onClick={() => canUpgrade && setSelectedPlan(plan)}
                 >
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                      <span className="bg-blue8 text-white px-3 py-1 rounded-full text-xs font-medium">
                         Más Popular
                       </span>
                     </div>
@@ -387,27 +409,27 @@ export default function PaymentModal({ isOpen, onClose, onPaymentSuccess }: Paym
                   )}
 
                   <div className="text-center">
-                    <div className={`${plan.color} rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4`}>
+                    <div className="w-12 h-12 bg-blue7 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm">
                       <plan.icon className="h-6 w-6 text-white" />
                     </div>
                     
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{plan.name}</h3>
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">{plan.name}</h3>
                     <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
                     
                     <div className="mb-4">
-                      <span className="text-3xl font-bold text-gray-900">
+                      <span className="text-3xl font-bold text-gray-800">
                         {formatCLP(plan.price)}
                       </span>
                       <span className="text-gray-600">/mes</span>
                     </div>
 
-                    <div className="space-y-2 mb-6">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Building2 className="h-4 w-4 mr-2" />
+                    <div className="space-y-2 mb-6 bg-white bg-opacity-80 rounded-lg p-3 border border-gray-200">
+                      <div className="flex items-center text-sm text-gray-700">
+                        <Building2 className="h-4 w-4 mr-2 text-blue7" />
                         {plan.maxRooms === -1 ? 'Habitaciones ilimitadas' : `Hasta ${plan.maxRooms} habitaciones`}
                       </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Users className="h-4 w-4 mr-2" />
+                      <div className="flex items-center text-sm text-gray-700">
+                        <Users className="h-4 w-4 mr-2 text-blue7" />
                         {plan.maxUsers === -1 ? 'Usuarios ilimitados' : `Hasta ${plan.maxUsers} usuarios`}
                       </div>
                     </div>
@@ -419,7 +441,7 @@ export default function PaymentModal({ isOpen, onClose, onPaymentSuccess }: Paym
                       </div>
                     ) : canUpgrade ? (
                       <Button
-                        className={`w-full ${isSelected ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 hover:bg-gray-700'}`}
+                        className={`w-full ${isSelected ? 'bg-blue7 hover:bg-blue7' : 'bg-gray-600 hover:bg-gray-700'} shadow-md transition-all duration-200`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedPlan(plan);
@@ -428,7 +450,7 @@ export default function PaymentModal({ isOpen, onClose, onPaymentSuccess }: Paym
                         {isSelected ? 'Seleccionado' : 'Seleccionar'}
                       </Button>
                     ) : (
-                      <div className="text-gray-400 text-sm">
+                      <div className="text-gray-500 text-sm bg-gray-100 rounded px-3 py-2">
                         Plan inferior
                       </div>
                     )}
@@ -441,38 +463,42 @@ export default function PaymentModal({ isOpen, onClose, onPaymentSuccess }: Paym
 
         {/* Payment Method Selection */}
         {selectedPlan && (
-          <div className="p-6 border-t border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Método de Pago</h3>
+          <div className="p-6 border-t border-gray-300 bg-gray-50">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Método de Pago</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                className={`p-4 border-2 rounded-lg cursor-pointer transition-all shadow-sm ${
                   paymentMethod === 'webpay'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-blue7 bg-gray10'
+                    : 'border-gray-300 hover:border-blue7 bg-gray-50'
                 }`}
                 onClick={() => setPaymentMethod('webpay')}
               >
                 <div className="flex items-center">
-                  <CreditCard className="h-6 w-6 text-blue-600 mr-3" />
+                  <div className="w-8 h-8 bg-blue7 rounded-lg flex items-center justify-center mr-3 shadow-sm">
+                    <CreditCard className="h-4 w-4 text-white" />
+                  </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">Webpay Plus</h4>
+                    <h4 className="font-medium text-gray-800">Webpay Plus</h4>
                     <p className="text-sm text-gray-600">Tarjeta de crédito o débito</p>
                   </div>
                 </div>
               </div>
               
               <div
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                className={`p-4 border-2 rounded-lg cursor-pointer transition-all shadow-sm ${
                   paymentMethod === 'transfer'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-blue7 bg-gray10'
+                    : 'border-gray-300 hover:border-blue7 bg-gray-50'
                 }`}
                 onClick={() => setPaymentMethod('transfer')}
               >
                 <div className="flex items-center">
-                  <Building2 className="h-6 w-6 text-green-600 mr-3" />
+                  <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center mr-3 shadow-sm">
+                    <Building2 className="h-4 w-4 text-white" />
+                  </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">Transferencia Bancaria</h4>
+                    <h4 className="font-medium text-gray-800">Transferencia Bancaria</h4>
                     <p className="text-sm text-gray-600">Pago directo a cuenta</p>
                   </div>
                 </div>
@@ -480,39 +506,45 @@ export default function PaymentModal({ isOpen, onClose, onPaymentSuccess }: Paym
             </div>
 
             {/* Payment Summary */}
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <h4 className="font-medium text-gray-900 mb-2">Resumen del Pago</h4>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Plan {selectedPlan.name}</span>
-                <span className="font-semibold text-gray-900">
-                  {formatCLP(selectedPlan.price)}/mes
-                </span>
-              </div>
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-gray-600">Método de pago</span>
-                <span className="text-gray-900">
-                  {paymentMethod === 'webpay' ? 'Webpay Plus' : 'Transferencia Bancaria'}
-                </span>
+            <div className="bg-gray10 rounded-lg p-4 mb-6 border border-gray-300 shadow-sm">
+              <h4 className="font-medium text-gray-800 mb-3">Resumen del Pago</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center py-2 border-b border-gray-300">
+                  <span className="text-gray-600">Plan {selectedPlan.name}</span>
+                  <span className="font-semibold text-gray-800">
+                    {formatCLP(selectedPlan.price)}/mes
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">Método de pago</span>
+                  <span className="text-gray-800 font-medium">
+                    {paymentMethod === 'webpay' ? 'Webpay Plus' : 'Transferencia Bancaria'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-between p-6 border-t border-gray-300 bg-gray-50">
           <div className="text-sm text-gray-600">
             <p>• Pago mensual recurrente</p>
             <p>• Puedes cambiar de plan en cualquier momento</p>
             <p>• Cancelación sin compromiso</p>
           </div>
           <div className="flex space-x-3">
-            <Button variant="outline" onClick={onClose}>
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+              className="border-gray-400 text-gray-600 hover:bg-gray-100"
+            >
               Cancelar
             </Button>
             <Button
               onClick={handleUpgrade}
               disabled={!selectedPlan || loading}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue7 hover:bg-blue7 text-white shadow-md transition-all duration-200"
             >
               {loading ? (
                 <>
@@ -529,6 +561,17 @@ export default function PaymentModal({ isOpen, onClose, onPaymentSuccess }: Paym
           </div>
         </div>
       </div>
+
+      {/* Modal de Transferencia Bancaria */}
+      {selectedPlan && (
+        <BankTransferModal
+          isOpen={showBankTransferModal}
+          onClose={() => setShowBankTransferModal(false)}
+          planName={selectedPlan.name}
+          planPrice={selectedPlan.price}
+          userEmail={userEmail}
+        />
+      )}
     </div>
   );
 }

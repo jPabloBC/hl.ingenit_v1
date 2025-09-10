@@ -5,10 +5,22 @@ import { CheckCircle, Star, ArrowRight, Globe, MapPin, Gift, Info, X } from "luc
 import BaseLayout from "@/components/layout/base-layout";
 import Link from "next/link";
 import { useRegion, getRegionalPricing, formatCurrency } from "@/hooks/useRegion";
+import { useSearchParams } from "next/navigation";
+import { useEffect, Suspense } from "react";
 
-export default function PricingPage() {
+function PricingPageContent() {
   const { region, loading } = useRegion();
   const plans = region ? getRegionalPricing(region) : [];
+  const searchParams = useSearchParams();
+  const isPaymentMode = searchParams.get('payment') === 'true';
+
+  // Si viene desde el modal de trial expirado, mostrar mensaje especial
+  useEffect(() => {
+    if (isPaymentMode) {
+      // Scroll to top para mostrar el mensaje
+      window.scrollTo(0, 0);
+    }
+  }, [isPaymentMode]);
 
   if (loading) {
     return (
@@ -26,11 +38,26 @@ export default function PricingPage() {
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
+        {isPaymentMode && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8 max-w-2xl mx-auto">
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <Info className="h-5 w-5 text-red-600" />
+              <h2 className="text-lg font-semibold text-red-800">Período de Prueba Expirado</h2>
+            </div>
+            <p className="text-red-700">
+              Tu período de prueba ha terminado. Selecciona un plan para continuar usando la plataforma.
+            </p>
+          </div>
+        )}
+        
         <h1 className="text-4xl md:text-5xl font-bold text-blue1 mb-6 font-title">
           Planes de Suscripción
         </h1>
         <p className="text-xl text-gray4 max-w-3xl mx-auto font-body mb-4">
-          Elige el plan perfecto para tu hotel. Todos incluyen soporte técnico y actualizaciones automáticas.
+          {isPaymentMode 
+            ? "Selecciona un plan para continuar usando la plataforma."
+            : "Elige el plan perfecto para tu hotel. Todos incluyen soporte técnico y actualizaciones automáticas."
+          }
         </p>
         
         {/* Region Display */}
@@ -98,9 +125,23 @@ export default function PricingPage() {
             </ul>
 
             <div className="mt-auto">
-              <Link href={plan.id === 'enterprise' ? '/contact' : `/register?plan=${plan.id}`} className="block">
+              <Link 
+                href={
+                  isPaymentMode 
+                    ? `/book/payment?plan=${plan.id}` 
+                    : plan.id === 'enterprise' 
+                      ? '/contact' 
+                      : `/register?plan=${plan.id}`
+                } 
+                className="block"
+              >
                 <Button className="w-full bg-blue8 hover:bg-blue6 text-white font-body">
-                  {plan.id === 'enterprise' ? 'Contactar Ventas' : 'Comenzar Prueba Gratuita'}
+                  {isPaymentMode 
+                    ? 'Pagar Plan'
+                    : plan.id === 'enterprise' 
+                      ? 'Contactar Ventas' 
+                      : 'Comenzar Prueba Gratuita'
+                  }
                 </Button>
               </Link>
             </div>
@@ -264,5 +305,20 @@ export default function PricingPage() {
       </div>
       </div>
     </BaseLayout>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={
+      <BaseLayout>
+        <div className="text-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue8 mx-auto"></div>
+          <p className="mt-4 text-gray4 font-body">Cargando...</p>
+        </div>
+      </BaseLayout>
+    }>
+      <PricingPageContent />
+    </Suspense>
   );
 }

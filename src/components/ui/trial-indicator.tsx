@@ -1,26 +1,34 @@
 "use client";
 
-import { useTrialDays } from "@/hooks/useTrialDays";
+import { useTrialStatus } from "@/hooks/useTrialStatus";
 import { Button } from "@/components/ui/button";
 import { Clock, AlertTriangle } from "lucide-react";
 
 export default function TrialIndicator() {
-  const { isTrial, daysRemaining, isExpired } = useTrialDays();
+  const { isTrial, daysRemaining, hoursRemaining, minutesRemaining, isExpired, urgencyLevel } = useTrialStatus();
 
   if (!isTrial) {
     return null;
   }
 
   const getIndicatorColor = () => {
-    if (isExpired) return "bg-red-500";
-    if (daysRemaining <= 3) return "bg-yellow-500";
-    return "bg-blue-500";
+    switch (urgencyLevel) {
+      case 'expired': return "bg-red-500";
+      case 'critical': return "bg-red-400";
+      case 'warning': return "bg-orange-500";
+      case 'normal': return "bg-blue-500";
+      default: return "bg-blue-500";
+    }
   };
 
   const getTextColor = () => {
-    if (isExpired) return "text-red-700";
-    if (daysRemaining <= 3) return "text-yellow-700";
-    return "text-blue-700";
+    switch (urgencyLevel) {
+      case 'expired': return "text-red-700";
+      case 'critical': return "text-red-700";
+      case 'warning': return "text-orange-700";
+      case 'normal': return "text-blue-700";
+      default: return "text-blue-700";
+    }
   };
 
   const getIcon = () => {
@@ -34,7 +42,9 @@ export default function TrialIndicator() {
       <span className={`text-sm font-medium ${getTextColor()}`}>
         {isExpired 
           ? "Prueba expirada" 
-          : `${daysRemaining} día${daysRemaining !== 1 ? 's' : ''} restante${daysRemaining !== 1 ? 's' : ''}`
+          : daysRemaining > 0 
+            ? `${daysRemaining} día${daysRemaining !== 1 ? 's' : ''} y ${hoursRemaining}h`
+            : `${hoursRemaining}h ${minutesRemaining}m`
         }
       </span>
       {!isExpired && (

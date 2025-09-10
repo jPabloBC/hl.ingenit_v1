@@ -1,8 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useTrialStatus } from "@/hooks/useTrialStatus";
+import { useSubscription } from "@/hooks/useSubscription";
 
 import { Button } from "@/components/ui/button";
 import { 
@@ -27,6 +29,7 @@ import {
 } from "lucide-react";
 import AlertsDropdown from "@/components/hotel/AlertsDropdown";
 import TrialIndicator from "@/components/ui/trial-indicator";
+import TrialExpiredModal from "@/components/hotel/TrialExpiredModal";
 import LoadingPage from "@/components/ui/loading-page";
 
 interface User {
@@ -129,10 +132,13 @@ const adminNavigationItem = {
   permission: "settings.view"
 };
 
-export default function HotelLayout({ children }: HotelLayoutProps) {
+function HotelLayoutContent({ children }: HotelLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { hasPermission } = usePermissions();
+  const { canAccess, isExpired } = useTrialStatus();
+  const { subscription } = useSubscription();
   const [user, setUser] = useState<User | null>(null);
   const [businessInfo, setBusinessInfo] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -140,6 +146,10 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
   const [loading, setLoading] = useState(true);
   const [showIconEditor, setShowIconEditor] = useState(false);
   const [uploadingIcon, setUploadingIcon] = useState(false);
+  const [showTrialExpiredModal, setShowTrialExpiredModal] = useState(false);
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [showPaymentError, setShowPaymentError] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState('');
 
   // Función para capitalizar texto
   const capitalizeText = (text: string) => {
@@ -154,6 +164,49 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
   useEffect(() => {
     checkUser();
   }, []);
+
+  // Verificar parámetros de pago
+  useEffect(() => {
+    const payment = searchParams.get('payment');
+    const message = searchParams.get('message');
+    
+    if (payment === 'success') {
+      setShowPaymentSuccess(true);
+      // Limpiar URL después de 10 segundos
+      setTimeout(() => {
+        router.replace('/hotel');
+      }, 10000);
+    } else if (payment === 'error') {
+      setShowPaymentError(true);
+      setPaymentMessage(message || 'Error en el pago');
+      // Limpiar URL después de 10 segundos
+      setTimeout(() => {
+        router.replace('/hotel');
+      }, 10000);
+    }
+  }, [searchParams, router]);
+
+  // Verificar si el trial expiró
+  useEffect(() => {
+    if (isExpired) {
+      setShowTrialExpiredModal(true);
+    }
+  }, [isExpired]);
+
+  // Función para obtener detalles del plan
+  const getPlanDetails = () => {
+    if (!subscription) return null;
+    
+    // Mapear plan_id a detalles del plan
+    const planMap: { [key: string]: { name: string; maxRooms: number; price: string } } = {
+      'starter': { name: 'Hoteles Pequeños', maxRooms: 20, price: '$9.990' },
+      'professional': { name: 'Hoteles Medianos', maxRooms: 50, price: '$19.990' },
+      'business': { name: 'Hoteles Grandes', maxRooms: 80, price: '$29.990' },
+      'enterprise': { name: 'Hoteles Enterprise', maxRooms: -1, price: '$49.990' }
+    };
+
+    return planMap[subscription.plan_id] || null;
+  };
 
 
   const checkUser = async () => {
@@ -306,6 +359,114 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
 
   if (loading) {
     return <LoadingPage message="Cargando..." />;
+  }
+
+  // Si el trial expiró, mostrar el contenido normal con el modal encima
+  if (isExpired) {
+    return (
+      <div className="min-h-screen bg-gray9 font-body pointer-events-none">
+        <div className="h-screen flex">
+          {/* Sidebar */}
+          <div className={`fixed lg:relative inset-y-0 left-0 z-40 bg-white shadow-2xl transform transition-all duration-300 ease-in-out ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          } ${sidebarCollapsed ? 'w-20' : 'w-80 lg:w-64'} flex-shrink-0`}>
+            <div className="flex flex-col h-screen max-h-screen overflow-hidden">
+              {/* Sidebar Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray8 flex-shrink-0 bg-gradient-to-r from-blue2 to-blue6">
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <div className="w-18 h-18 flex items-center justify-center rounded-full flex-shrink-0">
+                    <img
+                      src="/assets/icon_ingenIT_wt.png"
+                      alt="INGENIT Hotel Icon"
+                      className="h-10 w-10 object-contain"
+                    />
+                  </div>
+                  {!sidebarCollapsed && (
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-xl font-light text-white font-title truncate">
+                        INGENIT
+                      </h2>
+                      <p className="text-sm text-white opacity-90 truncate">Hotel Management</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* User Info */}
+              <div className="p-4 border-b border-gray8 flex-shrink-0 bg-gray10">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-blue8 rounded-full w-14 h-14 flex items-center justify-center cursor-pointer hover:bg-blue6 transition-colors overflow-hidden shadow-lg">
+                    {businessInfo?.icon_url ? (
+                      <img
+                        src={businessInfo.icon_url}
+                        alt="Hotel Icon"
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <div className="text-white text-2xl font-bold">
+                        {businessInfo?.business_name ? businessInfo.business_name.charAt(0).toUpperCase() : 'H'}
+                      </div>
+                    )}
+                  </div>
+                  {!sidebarCollapsed && (
+                    <div className="flex-1 min-w-0">
+                      {businessInfo && (
+                        <p className="text-lg font-bold text-blue8 truncate">
+                          {capitalizeText(businessInfo.business_name)}
+                        </p>
+                      )}
+                      <p className="text-base font-semibold text-blue1 truncate">
+                        {user?.name ? capitalizeText(user.name) : 'Usuario'}
+                      </p>
+                      <p className="text-sm text-gray4 truncate">
+                        {user?.email}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 flex flex-col bg-gray9 min-h-screen">
+            {/* Top Bar */}
+            <div className="bg-white border-b border-gray8 px-4 py-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div>
+                    <h1 className="text-xl font-bold text-blue1 font-title">
+                      Dashboard
+                    </h1>
+                    <p className="text-sm text-gray4">
+                      Vista general del hotel
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Page Content */}
+            <main className="p-3 overflow-y-auto flex-1">
+              <div className="text-center py-20">
+                <h2 className="text-2xl font-bold text-gray-400 mb-4">Acceso Restringido</h2>
+                <p className="text-gray-500">Tu período de prueba ha expirado</p>
+              </div>
+            </main>
+          </div>
+        </div>
+
+        {/* Modal de Trial Expirado */}
+        <div className="pointer-events-auto">
+          <TrialExpiredModal
+            isOpen={true}
+            onClose={() => {}} // No permitir cerrar
+            planName={businessInfo?.business_name}
+            planDetails={getPlanDetails() || undefined}
+          />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -689,6 +850,74 @@ export default function HotelLayout({ children }: HotelLayoutProps) {
           </div>
         </div>
       )}
+
+      {/* Modal de Trial Expirado */}
+      <TrialExpiredModal
+        isOpen={showTrialExpiredModal}
+        onClose={() => setShowTrialExpiredModal(false)}
+        planName={businessInfo?.business_name}
+        planDetails={getPlanDetails() || undefined}
+      />
+
+      {/* Modal de Pago Exitoso */}
+      {showPaymentSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">¡Pago Exitoso!</h3>
+              <p className="text-gray-600 mb-4">Tu suscripción ha sido activada correctamente. Ya puedes acceder a todas las funcionalidades de la plataforma.</p>
+              <Button
+                onClick={() => {
+                  setShowPaymentSuccess(false);
+                  router.replace('/hotel');
+                }}
+                className="bg-blue7 hover:bg-blue7 text-white"
+              >
+                Continuar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Error de Pago */}
+      {showPaymentError && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Pago Rechazado</h3>
+              <p className="text-gray-600 mb-4">{paymentMessage}</p>
+              <Button
+                onClick={() => {
+                  setShowPaymentError(false);
+                  router.replace('/hotel');
+                }}
+                className="bg-blue7 hover:bg-blue7 text-white"
+              >
+                Intentar Nuevamente
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function HotelLayout({ children }: HotelLayoutProps) {
+  return (
+    <Suspense fallback={<LoadingPage />}>
+      <HotelLayoutContent>{children}</HotelLayoutContent>
+    </Suspense>
   );
 }
