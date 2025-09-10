@@ -13,6 +13,6 @@ git push --follow-tags
 git archive -o "backups/${NAME}-${TS}.zip" --format=zip HEAD
 
 URL="$(vercel --prod --confirm 2>&1 | awk '/https?:\/\/[^ ]*vercel\.app/{u=$1} END{print u}')"
-vercel inspect "$URL" --json > "backups/${NAME}-${TS}.json"
-printf "%s\n" "$URL" > "backups/${NAME}-${TS}.url"
+vercel inspect "$URL" > "backups/${NAME}-${TS}.txt"
+echo "$URL" > "backups/${NAME}-${TS}.url"
 echo "OK -> $URL"
